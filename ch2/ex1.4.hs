@@ -37,8 +37,7 @@ parseNumber :: Parser LispVal
 parseNumber = parseDecimal <|> do
   char '#'
   prefix <- letter
-  ret <- parseNumberWithPrefix prefix
-  return ret
+  parseNumberWithPrefix prefix
 
 parseDecimal :: Parser LispVal
 parseDecimal = liftM (Number . read) $ many1 digit
