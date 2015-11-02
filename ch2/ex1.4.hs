@@ -1,6 +1,7 @@
 import Control.Monad
 import System.Environment
 import Text.ParserCombinators.Parsec hiding (spaces)
+import Numeric
 
 data LispVal = Atom String
              | List [LispVal]
@@ -33,7 +34,22 @@ parseAtom = do
     _ -> Atom atom
 
 parseNumber :: Parser LispVal
-parseNumber = many1 digit >>= (\str -> (return . Number . read) str)
+parseNumber = parseDecimal <|> do
+  char '#'
+  prefix <- letter
+  ret <- parseNumberWithPrefix prefix
+  return ret
+
+parseDecimal :: Parser LispVal
+parseDecimal = liftM (Number . read) $ many1 digit
+
+parseNumberWithPrefix :: Char -> Parser LispVal
+parseNumberWithPrefix prefix = liftM (Number . fst . head . prefixRead) $ many1 digit
+  where
+    prefixRead = case prefix of
+      'o' -> readOct
+      'd' -> readDec
+      'x' -> readHex
 
 parseExpr :: Parser LispVal
 parseExpr = parseAtom <|> parseString <|> parseNumber
